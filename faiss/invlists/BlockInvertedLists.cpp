@@ -110,6 +110,24 @@ void BlockInvertedLists::update_entries(
     */
 }
 
+void BlockInvertedLists::update_entry(
+            size_t list_no,
+            size_t offset,
+            idx_t id,
+            const uint8_t* nouse) {
+
+    FAISS_THROW_IF_NOT(list_no < nlist);
+    FAISS_THROW_IF_NOT(offset < ids[list_no].size());
+    //assert(ids[list_no].back() == id);
+    ids[list_no][offset] = id;
+    //assert(packer);
+    
+    size_t last_offset = ids[list_no].size() - 1;
+    std::vector<uint8_t> buffer(packer->code_size, 0);
+    packer->unpack_1(codes[list_no].data(), last_offset, buffer.data());
+    packer->pack_1(buffer.data(), offset, codes[list_no].data());
+}
+
 BlockInvertedLists::~BlockInvertedLists() {
     delete packer;
 }
