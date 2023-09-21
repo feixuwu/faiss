@@ -65,14 +65,12 @@ struct BlockInvertedLists : InvertedLists {
             const idx_t* ids,
             const uint8_t* code) override;
 
-    void update_entry(
-            size_t list_no,
-            size_t offset,
-            idx_t id,
-            const uint8_t* nouse) override;
-
     // also pads new data with 0s
     void resize(size_t list_no, size_t new_size) override;
+
+    const uint8_t* get_single_code(size_t list_no, size_t offset) const override;
+
+    void release_codes(size_t list_no, const uint8_t* codes) const override;
 
     ~BlockInvertedLists() override;
 };

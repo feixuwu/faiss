@@ -96,36 +96,33 @@ void BlockInvertedLists::resize(size_t list_no, size_t new_size) {
 }
 
 void BlockInvertedLists::update_entries(
-        size_t,
-        size_t,
-        size_t,
-        const idx_t*,
-        const uint8_t*) {
-    FAISS_THROW_MSG("not impemented");
-    /*
-    assert (list_no < nlist);
-    assert (n_entry + offset <= ids[list_no].size());
-    memcpy (&ids[list_no][offset], ids_in, sizeof(ids_in[0]) * n_entry);
-    memcpy (&codes[list_no][offset * code_size], codes_in, code_size * n_entry);
-    */
+        size_t list_no,
+            size_t offset,
+            size_t n_entry,
+            const idx_t* ids_in,
+            const uint8_t* code) {
+    FAISS_THROW_IF_NOT(list_no < nlist);
+    FAISS_THROW_IF_NOT((offset + n_entry) <= ids[list_no].size());
+    
+    for(size_t i = 0; i < n_entry; i++) {
+        ids[list_no][offset + i] = ids_in[i];
+        packer->pack_1(code + i * packer->code_size, offset + i, codes[list_no].data());
+    }
 }
 
-void BlockInvertedLists::update_entry(
-            size_t list_no,
-            size_t offset,
-            idx_t id,
-            const uint8_t* nouse) {
-
+const uint8_t* BlockInvertedLists::get_single_code(size_t list_no, size_t offset) const {
     FAISS_THROW_IF_NOT(list_no < nlist);
     FAISS_THROW_IF_NOT(offset < ids[list_no].size());
-    //assert(ids[list_no].back() == id);
-    ids[list_no][offset] = id;
-    //assert(packer);
     
-    size_t last_offset = ids[list_no].size() - 1;
-    std::vector<uint8_t> buffer(packer->code_size, 0);
-    packer->unpack_1(codes[list_no].data(), last_offset, buffer.data());
-    packer->pack_1(buffer.data(), offset, codes[list_no].data());
+    uint8_t* code = new uint8_t[packer->code_size];
+    packer->unpack_1(codes[list_no].data(), offset, code);
+    
+    return code;
+}
+
+void BlockInvertedLists::release_codes(size_t list_no, const uint8_t* codes) const {
+    FAISS_THROW_IF_NOT(list_no < nlist);
+    delete []codes;
 }
 
 BlockInvertedLists::~BlockInvertedLists() {
