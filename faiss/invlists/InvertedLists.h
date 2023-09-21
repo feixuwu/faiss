@@ -208,21 +208,24 @@ struct InvertedLists {
         const InvertedLists* il;
         const uint8_t* codes;
         size_t list_no;
+        bool need_release;
 
         ScopedCodes(const InvertedLists* il, size_t list_no)
-                : il(il), codes(il->get_codes(list_no)), list_no(list_no) {}
+                : il(il), codes(il->get_codes(list_no)), list_no(list_no), need_release(false) {}
 
         ScopedCodes(const InvertedLists* il, size_t list_no, size_t offset)
                 : il(il),
                   codes(il->get_single_code(list_no, offset)),
-                  list_no(list_no) {}
+                  list_no(list_no), need_release(true) {}
 
         const uint8_t* get() {
             return codes;
         }
 
         ~ScopedCodes() {
-            il->release_codes(list_no, codes);
+            if(need_release) {
+                il->release_codes(list_no, codes);
+            }
         }
     };
 };
