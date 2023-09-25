@@ -56,8 +56,8 @@ int main() {
     std::cout<<"pre train"<<std::endl;
     index.train(nb, xb);
     std::cout<<"after train"<<std::endl;
-    index.add(nb, xb);
-    /*for(long i = 0; i < nb; i++) {
+    //index.add(nb, xb);
+    for(long i = 0; i < nb; i++) {
         idx_t id = i + id_offset;
         index.add_with_ids(1, xb + i * d, &id);
     }
@@ -73,12 +73,12 @@ int main() {
         std::cout<<"moved id:"<<" "<<moved_id<<std::endl;
 
         index.remove_ids(faiss::IDSelectorArray(1, &id));
-    }*/
+    }
 
-    /*for(long i = 0; i < sanity_check_num; i++) {
-        idx_t id = i + nb + 10000;
+    for(long i = 0; i < sanity_check_num; i++) {
+        idx_t id = i + nb + 2000000;
         index.add_with_ids(1, xb + i * d, &id);
-    }*/
+    }
     
     
     std::cout<<"after remove"<<std::endl;
@@ -88,11 +88,11 @@ int main() {
         idx_t* I = new idx_t[k * sanity_check_num];
         float* D = new float[k * sanity_check_num];
 
-        /*float* xbb = new float[sanity_check_num * d];
+        float* xbb = new float[sanity_check_num * d];
         for (int i = 0; i < sanity_check_num; i++) {
             for (int j = 0; j < d; j++)
                 xbb[d * i + j] = xb[d * (moved_list[i] - id_offset) + j];
-        }*/
+        }
 
         //index.search(sanity_check_num, xbb, k, D, I);
         index.search(sanity_check_num, xb, k, D, I);
@@ -117,7 +117,7 @@ int main() {
 
     delete[] xb;
     std::cout<<"train done"<<std::endl;
-    //std::this_thread::sleep_for(std::chrono::seconds(1000));
+    std::this_thread::sleep_for(std::chrono::seconds(1000));
 
     
     { // search xq

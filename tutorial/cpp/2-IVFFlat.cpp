@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <random>
+#include <chrono>
 
 #include <faiss/IndexFlat.h>
 #include <faiss/IndexIVFFlat.h>
@@ -17,7 +18,7 @@ using idx_t = faiss::idx_t;
 
 int main() {
     int d = 64;      // dimension
-    int nb = 100000; // database size
+    int nb = 1000000; // database size
     int nq = 10000;  // nb of queries
 
     std::mt19937 rng;
@@ -52,8 +53,12 @@ int main() {
         idx_t* I = new idx_t[k * nq];
         float* D = new float[k * nq];
 
+        auto begin = std::chrono::steady_clock::now();
         index.search(nq, xq, k, D, I);
-
+        auto end = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+        printf("nprobe 1 Elapsed time: %ld ms\n", elapsed.count());
+        
         printf("I=\n");
         for (int i = nq - 5; i < nq; i++) {
             for (int j = 0; j < k; j++)
@@ -61,8 +66,12 @@ int main() {
             printf("\n");
         }
 
+        begin = std::chrono::steady_clock::now();
         index.nprobe = 10;
         index.search(nq, xq, k, D, I);
+        end = std::chrono::steady_clock::now();
+        elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+        printf("nprobe 10 Elapsed time: %ld ms\n", elapsed.count());
 
         printf("I=\n");
         for (int i = nq - 5; i < nq; i++) {
