@@ -16,41 +16,6 @@
 
 namespace faiss {
 
-class BlockInvertedCodeHelper {
-public:
-
-    void register_code(uint8_t* code) {
-        allocated_codes.insert(code);
-    }
-
-    void unregister_code(uint8_t* code) {
-        allocated_codes.erase(code);
-    }
-
-    bool is_code_registered(uint8_t* code) {
-        return allocated_codes.find(code) != allocated_codes.end();
-    }
-
-    ~BlockInvertedCodeHelper() {
-        for (auto code : allocated_codes) {
-            delete []code;
-        }
-    }
-
-    static BlockInvertedCodeHelper* get_instance() {
-        if (instance == nullptr) {
-            instance = new BlockInvertedCodeHelper();
-        }
-        return instance;
-    }
-
-private:
-    static BlockInvertedCodeHelper* instance;
-    std::set<uint8_t*> allocated_codes;
-};
-
-BlockInvertedCodeHelper* BlockInvertedCodeHelper::instance = nullptr;
-
 BlockInvertedLists::BlockInvertedLists(
         size_t nlist,
         size_t n_per_block,
@@ -100,6 +65,10 @@ size_t BlockInvertedLists::add_entries(
         }
     }
     return o;
+}
+
+std::set<uint8_t*>* BlockInvertedLists::get_alloc_codes() const {
+    return (std::set<uint8_t*>*)&allocated_codes;
 }
 
 size_t BlockInvertedLists::list_size(size_t list_no) const {
@@ -153,7 +122,8 @@ const uint8_t* BlockInvertedLists::get_single_code(size_t list_no, size_t offset
     uint8_t* code = new uint8_t[packer->code_size];
     packer->unpack_1(codes[list_no].data(), offset, code);
 
-    BlockInvertedCodeHelper::get_instance()->register_code(code);
+    auto alloc_codes = get_alloc_codes();
+    alloc_codes->insert(code);
     
     return code;
 }
@@ -161,9 +131,10 @@ const uint8_t* BlockInvertedLists::get_single_code(size_t list_no, size_t offset
 void BlockInvertedLists::release_codes(size_t list_no, const uint8_t* codes) const {
     FAISS_THROW_IF_NOT(list_no < nlist);
 
-    if(BlockInvertedCodeHelper::get_instance()->is_code_registered((uint8_t*)codes)) {
-        BlockInvertedCodeHelper::get_instance()->unregister_code((uint8_t*)codes);
-        delete []codes;
+    auto alloc_codes = get_alloc_codes();
+    if(alloc_codes->find((uint8_t*)codes) != alloc_codes->end() ) {
+        alloc_codes->erase((uint8_t*)codes);
+        delete[] codes;
     }
 }
 

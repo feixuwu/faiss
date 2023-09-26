@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <set>
 #include <faiss/index_io.h>
 #include <faiss/invlists/InvertedLists.h>
 #include <faiss/invlists/InvertedListsIOHook.h>
@@ -38,12 +39,14 @@ struct BlockInvertedLists : InvertedLists {
 
     std::vector<AlignedTable<uint8_t>> codes;
     std::vector<std::vector<idx_t>> ids;
+    std::set<uint8_t*> allocated_codes;
 
     BlockInvertedLists(size_t nlist, size_t vec_per_block, size_t block_size);
     BlockInvertedLists(size_t nlist, const CodePacker* packer);
 
     BlockInvertedLists();
 
+    std::set<uint8_t*>* get_alloc_codes() const;
     size_t list_size(size_t list_no) const override;
     const uint8_t* get_codes(size_t list_no) const override;
     const idx_t* get_ids(size_t list_no) const override;
