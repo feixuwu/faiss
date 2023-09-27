@@ -46,7 +46,7 @@ struct BlockInvertedLists : InvertedLists {
 
     BlockInvertedLists();
 
-    std::set<uint8_t*>* get_alloc_codes() const;
+    std::set<uint8_t*>* get_mutable_alloc_codes() const;
     size_t list_size(size_t list_no) const override;
     const uint8_t* get_codes(size_t list_no) const override;
     const idx_t* get_ids(size_t list_no) const override;

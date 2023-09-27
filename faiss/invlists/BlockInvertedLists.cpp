@@ -67,8 +67,8 @@ size_t BlockInvertedLists::add_entries(
     return o;
 }
 
-std::set<uint8_t*>* BlockInvertedLists::get_alloc_codes() const {
-    return (std::set<uint8_t*>*)&allocated_codes;
+std::set<uint8_t*>* BlockInvertedLists::get_mutable_alloc_codes() const {
+    return const_cast<std::set<uint8_t*>*>(&allocated_codes);
 }
 
 size_t BlockInvertedLists::list_size(size_t list_no) const {
@@ -122,7 +122,7 @@ const uint8_t* BlockInvertedLists::get_single_code(size_t list_no, size_t offset
     uint8_t* code = new uint8_t[packer->code_size];
     packer->unpack_1(codes[list_no].data(), offset, code);
 
-    auto alloc_codes = get_alloc_codes();
+    auto alloc_codes = get_mutable_alloc_codes();
     alloc_codes->insert(code);
     
     return code;
@@ -131,7 +131,7 @@ const uint8_t* BlockInvertedLists::get_single_code(size_t list_no, size_t offset
 void BlockInvertedLists::release_codes(size_t list_no, const uint8_t* codes) const {
     FAISS_THROW_IF_NOT(list_no < nlist);
 
-    auto alloc_codes = get_alloc_codes();
+    auto alloc_codes = get_mutable_alloc_codes();
     if(alloc_codes->find((uint8_t*)codes) != alloc_codes->end() ) {
         alloc_codes->erase((uint8_t*)codes);
         delete[] codes;
