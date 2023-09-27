@@ -139,6 +139,9 @@ void BlockInvertedLists::release_codes(size_t list_no, const uint8_t* codes) con
 }
 
 BlockInvertedLists::~BlockInvertedLists() {
+    for(auto it = allocated_codes.begin(); it != allocated_codes.end(); it++) {
+        delete[] *it;
+    }
     delete packer;
 }
 
